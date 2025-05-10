@@ -1,68 +1,35 @@
-export class Player extends Phaser.Physics.Arcade.Sprite
+export class Player extends Phaser.GameObjects.Rectangle
 {
-    constructor(scene,x,y)
+    constructor(scene,x,y, size = 32)
     {
-        super(scene,x,y,'dude')
+        super(scene,x,y,size,size,0x0000ff)
 
         scene.add.existing(this)
         scene.physics.add.existing(this)
 
-        this.setBounce(0.2)
-        this.setCollideWorldBounds(true)
+        this.body.setCollideWorldBounds(true)
         
-        this.initAnimations()
     }
     
-    initAnimations()
-    {
-        this.anims.create({
-            key: 'left',
-            frames: this.anims.generateFrameNumbers('dude',{start:0,end:3}),
-            frameRate:10,
-            repeat:-1
-        })
-        this.anims.create({
-            key:'turn',
-            frames:[ { key: 'dude', frame: 4 } ],
-            frameRate: 1
-        })
-        this.anims.create({
-            key: 'right',
-            frames: this.anims.generateFrameNumbers('dude',{start:5,end:8}),
-            frameRate:10,
-            repeat:-1
-        })
-          this.anims.create({
-            key: 'idle',
-            frames:[ { key: 'dude', frame: 4 } ],
-            frameRate:10,
-            repeat:-1
-        })
-      
-    }
-
     moveLeft()
     {
-        this.setVelocityX(-200)
-        this.anims.play("left",true)
+        this.body.setVelocityX(-250)
     }
 
     moveRight()
     {
-        this.setVelocityX(200)
-        this.anims.play("right",true)
+        this.body.setVelocityX(200)
     }
 
     idle()
     {
-        this.setVelocityX(0)
-        this.anims.play("idle", false)
+        this.body.setVelocityX(0)
     }
 
     jump()
     {
         if(this.body.blocked.down){
-            this.setVelocityY(-500)
+            this.body.setVelocityY(-400)
         }
     }
 }

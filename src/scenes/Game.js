@@ -9,22 +9,58 @@ export class Game extends Phaser.Scene {
     create() 
     {
         this.add.image(400, 300, 'sky');
+        this.player = new Player(this, 100, 450)
 
+        this.createStars()
+
+        this.createPlatforms(this.player)
+
+        this.cursors = this.input.keyboard.createCursorKeys()
+        this.keyW = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W)
+        this.keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A)
+        this.keyS = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S)
+        this.keyD = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D)
+
+        this.physics.add.collider(this.stars, this.platforms)
+        this.physics.add.overlap(this.player, this.stars, this.collectStar, null, this)
+
+        this.score = 0
+        this.scoreText = this.add.text(16, 16, 'Score: 0', {fontSize: "32px", fill: "#000"})
+
+        this.bombs = this.physics.add.group()
+        
+        this.physics.add.collider(this.bombs, this.platforms)
+        this.physics.add.collider(this.player, this.bombs, this.hitBomb, null, this)
+    }
+
+    update() 
+    {
+        if(this.cursors.left.isDown || this.keyA.isDown){
+            this.player.moveLeft()
+        }
+        else if(this.cursors.right.isDown || this.keyD.isDown){
+            this.player.moveRight()
+        }
+        else{
+            this.player.idle()
+        }
+
+        if(this.cursors.up.isDown || this.keyW.isDown){
+            this.player.jump()
+        }
+    }
+    createPlatforms(player)
+    {
         this.platforms = this.physics.add.staticGroup();
-
         this.platforms.create(400,568,'ground').setScale(2).refreshBody();
-
         this.platforms.create(600,400,"ground")
         this.platforms.create(50,250,"ground")
         this.platforms.create(750,220,"ground")
+        this.physics.add.collider(player, this.platforms)
+    }
 
-        this.player = new Player(this, 100, 450)
-
-        this.physics.add.collider(this.player, this.platforms)
-
-        this.cursors = this.input.keyboard.createCursorKeys()
-
-        
+    createStars()
+    {
         this.stars = this.physics.add.group({
             key: "star",
             repeat: 11,
@@ -39,42 +75,12 @@ export class Game extends Phaser.Scene {
         {
             child.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8))
         })
-
-        this.physics.add.collider(this.stars, this.platforms)
-        this.physics.add.overlap(this.player, this.stars, this.collectStar, null, this)
-
-
-        this.score = 0
-        this.scoreText = this.add.text(16, 16, 'Score: 0', {fontSize: "32px", fill: "#000"})
-
-        this.bombs = this.physics.add.group()
-        
-        this.physics.add.collider(this.bombs, this.platforms)
-        this.physics.add.collider(this.player, this.bombs, this.hitBomb, null, this)
-
-    }
-
-    update() 
-    {
-        if(this.cursors.left.isDown){
-            this.player.moveLeft()
-        }
-        else if(this.cursors.right.isDown){
-            this.player.moveRight()
-        }
-        else{
-            this.player.idle()
-        }
-
-        if(this.cursors.up.isDown){
-            this.player.jump()
-        }
     }
 
     collectStar(player, star)
     {
+        this.releaseBomb()
         star.disableBody(true, true)
-
         this.score += 10
         this.scoreText.setText('Score: ' + this.score)
 
@@ -92,12 +98,8 @@ export class Game extends Phaser.Scene {
     hitBomb(player, bomb)
     {
         this.physics.pause()
-
-        player.setTint(0xff0000)
-
-        player.anims.play('turn')
-
-        this.time.delayedCall(2000, ()=> 
+        this.player.setFillStyle(0xff0000)
+        this.time.delayedCall(1000, ()=> 
         {
             this.scene.start('GameOver')
         })
@@ -106,7 +108,6 @@ export class Game extends Phaser.Scene {
     releaseBomb()
     {
         var x = (this.player.x < 400) ? Phaser.Math.Between(400, 800) : Phaser.Math.Between(0, 400)
-        console.log(x)
         var bomb = this.bombs.create(x, 16, 'bomb')
         bomb.setBounce(1)
         bomb.setCollideWorldBounds(true)
